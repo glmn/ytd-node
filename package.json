@@ -2,6 +2,7 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "http": "0.0.0",
+    "junk": "^2.1.0",
     "path": "^0.12.7",
     "r-json": "^1.2.5",
     "rimraf": "^2.6.1",
