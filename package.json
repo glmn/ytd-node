@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "videoshow": "^0.1.11",
     "youtube-api": "^2.0.6"
   }
 }
