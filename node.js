@@ -1,4 +1,4 @@
-var socket		= require("socket.io-client"),
+var socket		= require("socket.io-client")(':3000'),
 	prettyBytes = require("pretty-bytes"),
 	youtube   	= require("youtube-api"),
 	logger 	  	= require("bug-killer"),
@@ -7,13 +7,12 @@ var socket		= require("socket.io-client"),
 	request   	= require('request'),
 	sqlite 	  	= require('sqlite3').verbose(),
 	readJson  	= require("r-json"),
-    rmdir 	  	= require('rimraf'),
+	rmdir 	  	= require('rimraf'),
 	http 	  	= require('http'),
 	path	  	= require('path'),
 	junk 	  	= require('junk'),
 	opn 	  	= require("opn"),
-	fs		  	= require("fs"),
-
+	fs		  	= require("fs");
 
 const 
 	photos_temp = 'temp/photos',
@@ -22,3 +21,4 @@ const
 	images_path = 'assets/img',
 	hotellook_api = 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg'
 	description_link = 'http://h.glmn.io/';
+
