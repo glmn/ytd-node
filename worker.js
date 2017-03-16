@@ -24,10 +24,33 @@ const
 socket.on('connect', function(){
 	socket.emit('hotel-request');
 	socket.on('hotel-response', function(hotel){
-		debug.log(hotel);
 		//dwn all photos
 		//make video
 		//upload to youtube
 	})
 })
 
+class Worker {
+
+	static makePhotosDir(hotel)
+	{
+		return new Promise(function(resolve,reject){
+			var folder = path.join(photos_temp,hotel.id);
+			fs.stat(folder, function (err, stats){
+				if (err) {
+					return new Promise(function(resolve,reject){
+						fs.mkdir(folder, function(){
+							resolve(folder);
+						});	
+					});
+				}
+
+				if (!stats.isDirectory()) {
+					reject(new Error('temp is not a directory!'));
+				} else {
+					resolve([folder,hotel]);
+				}
+			});
+		});
+	}
+}
