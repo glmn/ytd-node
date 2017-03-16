@@ -22,3 +22,7 @@ const
 	hotellook_api = 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg'
 	description_link = 'http://h.glmn.io/';
 
+socket.on('connect', function(){
+	logger.log('connected');
+})
+
