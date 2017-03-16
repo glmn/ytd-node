@@ -1,4 +1,4 @@
-var socket		= require("socket.io-client")(':3000'),
+var socket		= require("socket.io-client")('http://localhost:3000'),
 	prettyBytes = require("pretty-bytes"),
 	youtube   	= require("youtube-api"),
 	logger 	  	= require("bug-killer"),
@@ -23,6 +23,6 @@ const
 	description_link = 'http://h.glmn.io/';
 
 socket.on('connect', function(){
-	logger.log('connected');
+	logger.log('Connected');
 })
 
