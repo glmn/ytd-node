@@ -1,7 +1,7 @@
 var socket		= require("socket.io-client")('http://localhost:3000'),
 	prettyBytes = require("pretty-bytes"),
 	youtube   	= require("youtube-api"),
-	logger 	  	= require("bug-killer"),
+	debug 	  	= require("bug-killer"),
 	videoshow 	= require('videoshow'),
 	Promise   	= require('bluebird'),
 	request   	= require('request'),
@@ -24,6 +24,7 @@ const
 socket.on('connect', function(){
 	socket.emit('hotel-request');
 	socket.on('hotel-response', function(hotel){
+		debug.log(hotel);
 		//dwn all photos
 		//make video
 		//upload to youtube
