@@ -23,6 +23,11 @@ const
 	description_link = 'http://h.glmn.io/';
 
 socket.on('connect', function(){
-	logger.log('Connected');
+	socket.emit('hotel-request');
+	socket.on('hotel-response', function(hotel){
+		//dwn all photos
+		//make video
+		//upload to youtube
+	})
 })
 
