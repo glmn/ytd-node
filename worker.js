@@ -38,8 +38,11 @@ var oauth = youtube.authenticate({
 
 
 socket.on('connect', () => {
+
 	socket.emit('worker:hotel-request');
+
 	socket.on('worker:hotel-response', (hotel) => {
+
 		Promise.resolve()
 			   .then(() => {
 			   		Worker.emitStatus('Refreshing YouTube token');
@@ -60,6 +63,7 @@ socket.on('connect', () => {
 			   		return [folder,hotel];
 			   })
 			   .then(Worker.makeVideo)
+			   .then(([hotel,video_output]))
 			   .catch(debug.warn)
 		//upload to youtube
 	})
@@ -168,17 +172,17 @@ class Worker {
 
 			Worker.getPhotosFromFolder(folder).then((photos) => {
 				Worker.chooseSound().then((audio) => {
-					var videoOutput = path.join(videos_temp, hotel.id + '.mp4');
+					var video_output = path.join(videos_temp, hotel.id + '.mp4');
 					videoshow(photos, videoOptions)
 						.audio(audio)
 						.logo(watermark,watermarkOptions)
-						.save(videoOutput)
+						.save(video_output)
 						.on('start', () => {
 				        	console.log(hotel.name + ' => making video');
 						})
 						.on('end', () => {
 							rmdir(folder, () => {
-								resolve([hotel,videoOutput])
+								resolve([hotel,video_output])
 							});
 						})
 						.on('error', (err, stdout, stderr) => {
