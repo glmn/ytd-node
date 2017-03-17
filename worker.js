@@ -30,16 +30,21 @@ socket.on('connect', () => {
 	socket.emit('worker:hotel-request');
 	socket.on('worker:hotel-response', (hotel) => {
 		Promise.resolve(hotel)
+			   .then((hotel) => {
+			   		Worker.emitStatus('Making photos temp directory');
+			   		return hotel;
+			   })
 			   .then(Worker.makePhotosDir)
 			   .then(([folder,hotel]) => {
-			   		Worker.emitStatus('Created photos temp directory');
+			   		Worker.emitStatus('Downloading photos');
 			   		return [folder,hotel];
 			   })
 			   .then(Worker.downloadAllPhotos)
 			   .then(([folder,hotel]) => {
-			   		Worker.emitStatus('Downloaded all photos');
+			   		Worker.emitStatus('Making video');
 			   		return [folder,hotel];
 			   })
+			   .then(Worker.makeVideo)
 			   .catch(debug.warn)
 		//make video
 		//upload to youtube
@@ -125,8 +130,77 @@ class Worker {
 		});
 	}
 
+	static makeVideo(args){
+		return new Promise((resolve,reject) => {
+			var [hotel,folder] = args;
+
+			var videoOptions = {
+				fps: 25,
+				loop: 4, // seconds
+				transition: true,
+				transitionDuration: 1, // seconds
+				videoBitrate: 1024,
+				videoCodec: 'libx264',
+				size: '1280x720',
+				audioBitrate: '128k',
+				audioChannels: 2,
+				format: 'mp4',
+				pixelFormat: 'yuv420p'
+			};
+
+			var watermark = path.join(images_path,'watermark.png');
+			var watermarkOptions = { start: 0, end: 999, xAxis: 0, yAxis: 0 };
+			var audio = Worker.chooseSound();
+
+			Worker.getPhotosFromFolder(folder).then((photos) => {
+
+				var videoOutput = path.join(videos_temp, hotel.id + '.mp4');
+				videoshow(photos, videoOptions)
+					.audio(audio)
+					.logo(watermark,watermarkOptions)
+					.save(videoOutput)
+					.on('start', () => {
+			        	console.log(hotel.name + ' => making video');
+					})
+					.on('end', () => {
+						rmdir(folder, () => {
+							resolve([hotel,videoOutput])
+						});
+					})
+					.on('error', (err, stdout, stderr) => {
+						reject([err, stdout, stderr])
+					})
+			});
+		})
+	}
+
+	static getPhotosFromFolder(folder){
+		return new Promise((resolve,reject) => {
+			fs.readdir(folder,(err,files) => {
+				if(err) return reject(err);
+
+				files = files.filter(junk.not).map((file) => {
+					return path.join(folder, file);
+				});
+
+				resolve(files);
+			});
+		});
+	}
+
+	static chooseSound() {
+		fs.readdir(sounds_path, (err,files) => {
+			if(err) throw new Error(err);
+
+			files = files.filter(junk.not)
+			return path.join(sounds_path, files[Math.floor(Math.random() * files.length)]);
+		})
+	}
+
 	static emitStatus(status)
 	{
 		socket.emit('worker:update-status', status);
 	}
+
+
 }
