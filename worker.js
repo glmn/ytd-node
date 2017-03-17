@@ -69,16 +69,16 @@ class Worker {
 			var [folder,hotel] = args;
 			debug.log(folder,hotel);
 			var promises = [];
-			var photosUrls = [];
+			var photoUrls = [];
 
 			for(var i = 1; i <= hotel.photos_count; i++){
-				photosUrls.push(
+				photoUrls.push(
 					hotellook_api.replace('{id}', hotel.id)
 							   	 .replace('{photo_id}', i)
 				)
 			}
 
-			photosUrls.forEach((photoUrl, index) => {
+			photoUrls.forEach((photoUrl, index) => {
 				promises.push(Worker.downloadPhoto(hotel, photoUrl, folder, index));
 			});
 
