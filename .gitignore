@@ -4,3 +4,4 @@ temp/videos/*
 !temp/videos/.gitkeep
 */.DS_Store
 .DS_Store
+.env
