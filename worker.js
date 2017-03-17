@@ -13,7 +13,8 @@ var socket		= require("socket.io-client")('http://localhost:3000'),
 	opn 	  	= require("opn"),
 	fs		  	= require("fs");
 
-const 
+const
+	photos_limit = 10,
 	photos_temp = 'temp/photos',
 	videos_temp = 'temp/videos',
 	sounds_path = 'assets/sounds',
@@ -71,7 +72,7 @@ class Worker {
 			var promises = [];
 			var photoUrls = [];
 
-			for(var i = 1; i <= hotel.photos_count; i++){
+			for(var i = 1; i <= (hotel.photos_count > photos_limit ? photos_limit : hotel.photos_count) ; i++){
 				photoUrls.push(
 					hotellook_api.replace('{id}', hotel.id)
 							   	 .replace('{photo_id}', i)
