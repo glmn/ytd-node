@@ -17,6 +17,7 @@ var socket		= require("socket.io-client")('http://localhost:3000'),
 	require('dotenv').config();
 	
 const
+	upload_delay = process.env.UPLOAD_DELAY || 60 * 60 * 12,
 	upload_limit = process.env.UPLOAD_LIMIT || 50,
 	photos_limit = process.env.PHOTOS_LIMIT || 10,
 	photos_temp = 'temp/photos',
@@ -27,6 +28,16 @@ const
 	redirect_link = process.env.REDIRECT_LINK || 'http://h.glmn.io/',
 	CREDENTIALS = readJson('credentials.json');
 
+var uploaded_videos = 0;
+
+var	video_description = [
+	"Book it now with up to 20% discount - " + redirect_link + "{hotel_id} \n\n",
+	"{hotel_name} review",
+	"{hotel_name} price",
+	"{hotel_name} discount",
+	"{hotel_name} video",
+	"{hotel_name} reviews"
+];
 var oauth = youtube.authenticate({
     type: "oauth",
  	access_token: process.env.ACCESS_TOKEN,
@@ -63,9 +74,23 @@ socket.on('connect', () => {
 			   		return [folder,hotel];
 			   })
 			   .then(Worker.makeVideo)
-			   .then(([hotel,video_output]))
+			   .then(([hotel,video]) => {
+			   		Worker.emitStatus('Uploading video to YouTube');
+			   		return [hotel,video];
+			   })
+			   .then(Worker.youtubeUpload)
+			   .then(() => {
+			   		uploaded_videos += 1;
+			   		if(uploaded_videos == upload_limit)
+			   		{
+			   			setTimeout(() => {
+							socket.emit('worker:hotel-request');
+			   			}, upload_delay);
+			   		}else{
+						socket.emit('worker:hotel-request');
+			   		}
+			   })
 			   .catch(debug.warn)
-		//upload to youtube
 	})
 })
 
@@ -227,6 +252,40 @@ class Worker {
 				if(err) reject();
 				resolve();
 			});
+		});
+	}
+
+	static youtubeUpload(args)
+	{
+		var [hotel,video] = args;
+		return new Promise(function(resolve, reject){
+			var description = video_description.join("\n");
+				description = description.split("{hotel_id}").join(hotel.id)
+						   				 .split("{hotel_name}").join(hotel.name);
+			var req = youtube.videos.insert({
+			    resource: {
+			        snippet: {
+			            title: hotel.name + ' - ' + hotel.country_name + ', ' + hotel.location_name + ' - Review [HD]'
+			          , description: description
+			        }
+			      , status: {
+			            privacyStatus: "public"
+			        }
+			    }
+			  , part: "snippet,status"
+			  , media: {
+			        body: fs.createReadStream(video)
+			    }
+			}, (err, data) => {
+				if(err) reject(err);
+				console.log('Uploaded');
+			    clearInterval(uploadlogger);
+			    resolve();
+			});
+
+			var uploadlogger = setInterval(function () {
+			    debug.log(`${prettyBytes(req.req.connection._bytesDispatched)} uploaded.`);
+			}, 1000);
 		});
 	}
 
