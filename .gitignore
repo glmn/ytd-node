@@ -1,6 +1,6 @@
-!temp/photos/.gitkeep
-!temp/videos/.gitkeep
 temp/photos/*
 temp/videos/*
+!temp/photos/.gitkeep
+!temp/videos/.gitkeep
 */.DS_Store
 .DS_Store
