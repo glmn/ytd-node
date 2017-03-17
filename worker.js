@@ -17,6 +17,7 @@ var socket		= require("socket.io-client")('http://localhost:3000'),
 	require('dotenv').config();
 	
 const
+	upload_limit = process.env.UPLOAD_LIMIT || 50,
 	photos_limit = process.env.PHOTOS_LIMIT || 10,
 	photos_temp = 'temp/photos',
 	videos_temp = 'temp/videos',
