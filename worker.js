@@ -38,9 +38,9 @@ socket.on('connect', () => {
 			   .then(Worker.downloadAllPhotos)
 			   .then(([folder,hotel]) => {
 			   		Worker.emitStatus('Downloaded all photos');
+			   		return [folder,hotel];
 			   })
 			   .catch(debug.warn)
-		//dwn all photos
 		//make video
 		//upload to youtube
 	})
