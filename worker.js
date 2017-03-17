@@ -14,9 +14,10 @@ var socket		= require("socket.io-client")('http://localhost:3000'),
 	junk 	  	= require('junk'),
 	opn 	  	= require("opn"),
 	fs		  	= require("fs");
-
+	require('dotenv').config();
+	
 const
-	photos_limit = 10,
+	photos_limit = proccess.env.PHOTOS_LIMIT,
 	photos_temp = 'temp/photos',
 	videos_temp = 'temp/videos',
 	sounds_path = 'assets/sounds',
