@@ -27,6 +27,10 @@ socket.on('connect', () => {
 	socket.on('hotel-response', (hotel) => {
 		Promise.resolve(hotel)
 			   .then(Worker.makePhotosDir)
+			   .then(([folder,hotel]) => {
+			   		socket.emit('worker:update-status', 'Created photos temp directory');
+			   		return [folder,hotel];
+			   })
 			   .then(Worker.downloadAllPhotos)
 			   .catch(debug.warn)
 		//dwn all photos
