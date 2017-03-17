@@ -21,12 +21,13 @@ const
 	hotellook_api = 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg'
 	description_link = 'http://h.glmn.io/';
 
-socket.on('connect', function(){
+socket.on('connect', () => {
 	socket.emit('hotel-request');
-	socket.on('hotel-response', function(hotel){
+	socket.on('hotel-response', (hotel) => {
 		Promise.resolve(hotel)
 			   .then(Worker.makePhotosDir)
 			   .then(Worker.downloadAllPhotos)
+			   .catch(debug.warn)
 		//dwn all photos
 		//make video
 		//upload to youtube
@@ -37,15 +38,11 @@ class Worker {
 
 	static makePhotosDir(hotel)
 	{
-		return new Promise(function(resolve,reject){
+		return new Promise((resolve,reject) => {
 			var folder = path.join(photos_temp,hotel.id);
-			fs.stat(folder, function (err, stats){
+			fs.stat(folder, (err, stats) => {
 				if (err) {
-					return new Promise(function(resolve,reject){
-						fs.mkdir(folder, function(){
-							resolve([folder,hotel]);
-						});	
-					});
+					return resolve(Worker.mkDir(folder,hotel))
 				}
 
 				if (!stats.isDirectory()) {
@@ -57,11 +54,20 @@ class Worker {
 		});
 	}
 
+	static mkDir(folder,hotel)
+	{
+		return new Promise((resolve,reject) => {
+			fs.mkdir(folder, () => {
+				resolve([folder,hotel]);
+			});	
+		});
+	}
+
 	static downloadAllPhotos(args)
 	{
-		return new Promise(function(resolve,reject){
-			[folder,hotel] = args;
-
+		return new Promise((resolve,reject) => {
+			var [folder,hotel] = args;
+			debug.log(folder,hotel);
 			var promises = [];
 			var photosUrls = [];
 
@@ -72,12 +78,12 @@ class Worker {
 				)
 			}
 
-			photosUrls.forEach(function(photoUrl, index){
-				promises.push(self.downloadPhoto(hotel, photoUrl, folder, index));
+			photosUrls.forEach((photoUrl, index) => {
+				promises.push(Worker.downloadPhoto(hotel, photoUrl, folder, index));
 			});
 
 			Promise.all(promises)
-				.then(function(){
+				.then(() => {
 			        debug.log(hotel.name + ' => all photos downloaded');
 					resolve([hotel,folder])
 				})
@@ -87,12 +93,12 @@ class Worker {
 
 	static downloadPhoto(hotel, photoUrl, folder, index)
 	{
-		return new Promise(function(resolve,reject){
-			var request = http.get(photoUrl, function (response) {
+		return new Promise((resolve,reject) => {
+			var request = http.get(photoUrl, (response) => {
 				var f = fs.createWriteStream(path.join(folder,index + '.jpg'));
-				response.on('data', function (chunk) {
+				response.on('data', (chunk) => {
 			        f.write(chunk);
-			    }).on('end',function(){
+			    }).on('end', () => {
 			        f.end();
 			        resolve(hotel);
 			    });
