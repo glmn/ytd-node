@@ -150,26 +150,26 @@ class Worker {
 
 			var watermark = path.join(images_path,'watermark.png');
 			var watermarkOptions = { start: 0, end: 999, xAxis: 0, yAxis: 0 };
-			var audio = Worker.chooseSound();
 
 			Worker.getPhotosFromFolder(folder).then((photos) => {
-
-				var videoOutput = path.join(videos_temp, hotel.id + '.mp4');
-				videoshow(photos, videoOptions)
-					.audio(audio)
-					.logo(watermark,watermarkOptions)
-					.save(videoOutput)
-					.on('start', () => {
-			        	console.log(hotel.name + ' => making video');
-					})
-					.on('end', () => {
-						rmdir(folder, () => {
-							resolve([hotel,videoOutput])
-						});
-					})
-					.on('error', (err, stdout, stderr) => {
-						reject([err, stdout, stderr])
-					})
+				Worker.chooseSound().then((audio) => {
+					var videoOutput = path.join(videos_temp, hotel.id + '.mp4');
+					videoshow(photos, videoOptions)
+						.audio(audio)
+						.logo(watermark,watermarkOptions)
+						.save(videoOutput)
+						.on('start', () => {
+				        	console.log(hotel.name + ' => making video');
+						})
+						.on('end', () => {
+							rmdir(folder, () => {
+								resolve([hotel,videoOutput])
+							});
+						})
+						.on('error', (err, stdout, stderr) => {
+							reject([err, stdout, stderr])
+						})
+				});
 			});
 		})
 	}
@@ -189,11 +189,13 @@ class Worker {
 	}
 
 	static chooseSound() {
-		fs.readdir(sounds_path, (err,files) => {
-			if(err) throw new Error(err);
+		return new Promise((resolve,reject) => {
+			fs.readdir(sounds_path, (err,files) => {
+				if(err) reject(err);
 
-			files = files.filter(junk.not)
-			return path.join(sounds_path, files[Math.floor(Math.random() * files.length)]);
+				files = files.filter(junk.not)
+				resolve(path.join(sounds_path, files[Math.floor(Math.random() * files.length)]));
+			})
 		})
 	}
 
