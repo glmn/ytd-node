@@ -25,8 +25,8 @@ const
 	description_link = 'http://h.glmn.io/';
 
 socket.on('connect', () => {
-	socket.emit('hotel-request');
-	socket.on('hotel-response', (hotel) => {
+	socket.emit('worker:hotel-request');
+	socket.on('worker:hotel-response', (hotel) => {
 		Promise.resolve(hotel)
 			   .then(Worker.makePhotosDir)
 			   .then(([folder,hotel]) => {
