@@ -1,3 +1,5 @@
+"use strict";
+
 var socket		= require("socket.io-client")('http://localhost:3000'),
 	prettyBytes = require("pretty-bytes"),
 	youtube   	= require("youtube-api"),
@@ -19,7 +21,7 @@ const
 	videos_temp = 'temp/videos',
 	sounds_path = 'assets/sounds',
 	images_path = 'assets/img',
-	hotellook_api = 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg'
+	hotellook_api = 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
 	description_link = 'http://h.glmn.io/';
 
 socket.on('connect', () => {
