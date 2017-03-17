@@ -23,14 +23,28 @@ const
 	sounds_path = 'assets/sounds',
 	images_path = 'assets/img',
 	hotellook_api = process.env.HOTELLOOK_API || 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
-	redirect_link = process.env.REDIRECT_LINK || 'http://h.glmn.io/';
+	redirect_link = process.env.REDIRECT_LINK || 'http://h.glmn.io/',
+	CREDENTIALS = readJson('credentials.json');
+
+var oauth = youtube.authenticate({
+    type: "oauth",
+ 	access_token: process.env.ACCESS_TOKEN,
+	refresh_token: process.env.REFRESH_TOKEN,
+	client_id: CREDENTIALS.web.client_id,
+	client_secret: CREDENTIALS.web.client_secret,
+	redirect_url: CREDENTIALS.web.redirect_uris[0]
+});
 
 
 socket.on('connect', () => {
 	socket.emit('worker:hotel-request');
 	socket.on('worker:hotel-response', (hotel) => {
-		Promise.resolve(hotel)
-			   .then((hotel) => {
+		Promise.resolve()
+			   .then(() => {
+			   		Worker.emitStatus('Refreshing YouTube token');
+			   })
+			   .then(Worker.youtubeRefreshToken)
+			   .then(() => {
 			   		Worker.emitStatus('Making photos temp directory');
 			   		return hotel;
 			   })
@@ -46,7 +60,6 @@ socket.on('connect', () => {
 			   })
 			   .then(Worker.makeVideo)
 			   .catch(debug.warn)
-		//make video
 		//upload to youtube
 	})
 })
@@ -130,7 +143,8 @@ class Worker {
 		});
 	}
 
-	static makeVideo(args){
+	static makeVideo(args)
+	{
 		return new Promise((resolve,reject) => {
 			var [hotel,folder] = args;
 
@@ -174,7 +188,8 @@ class Worker {
 		})
 	}
 
-	static getPhotosFromFolder(folder){
+	static getPhotosFromFolder(folder)
+	{
 		return new Promise((resolve,reject) => {
 			fs.readdir(folder,(err,files) => {
 				if(err) return reject(err);
@@ -188,7 +203,8 @@ class Worker {
 		});
 	}
 
-	static chooseSound() {
+	static chooseSound()
+	{
 		return new Promise((resolve,reject) => {
 			fs.readdir(sounds_path, (err,files) => {
 				if(err) reject(err);
@@ -197,6 +213,16 @@ class Worker {
 				resolve(path.join(sounds_path, files[Math.floor(Math.random() * files.length)]));
 			})
 		})
+	}
+
+	static youtubeRefreshToken()
+	{
+		return new Promise(function(resolve,reject){
+			oauth.refreshAccessToken(function(err, tokens){
+				if(err) reject();
+				resolve();
+			});
+		});
 	}
 
 	static emitStatus(status)
