@@ -49,9 +49,7 @@ var oauth = youtube.authenticate({
 
 
 socket.on('connect', () => {
-
 	socket.emit('worker:hotel-request');
-
 	socket.on('worker:hotel-response', (hotel) => {
 
 		Promise.resolve()
@@ -265,15 +263,15 @@ class Worker {
 			var req = youtube.videos.insert({
 			    resource: {
 			        snippet: {
-			            title: hotel.name + ' - ' + hotel.country_name + ', ' + hotel.location_name + ' - Review [HD]'
-			          , description: description
-			        }
-			      , status: {
+			            title: hotel.name + ' - ' + hotel.country_name + ', ' + hotel.location_name + ' - Review [HD]',
+			          	description: description
+			        },
+			      	status: {
 			            privacyStatus: "public"
 			        }
-			    }
-			  , part: "snippet,status"
-			  , media: {
+			    },
+				part: "snippet,status",
+				media: {
 			        body: fs.createReadStream(video)
 			    }
 			}, (err, data) => {
