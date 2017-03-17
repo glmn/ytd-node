@@ -23,7 +23,8 @@ const
 	sounds_path = 'assets/sounds',
 	images_path = 'assets/img',
 	hotellook_api = process.env.HOTELLOOK_API || 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
-	description_link = 'http://h.glmn.io/';
+	redirect_link = process.env.REDIRECT_LINK || 'http://h.glmn.io/';
+
 
 socket.on('connect', () => {
 	socket.emit('worker:hotel-request');
@@ -31,16 +32,26 @@ socket.on('connect', () => {
 		Promise.resolve(hotel)
 			   .then(Worker.makePhotosDir)
 			   .then(([folder,hotel]) => {
-			   		socket.emit('worker:update-status', 'Created photos temp directory');
+			   		Worker.emitStatus('Created photos temp directory');
 			   		return [folder,hotel];
 			   })
 			   .then(Worker.downloadAllPhotos)
+			   .then(([folder,hotel]) => {
+			   		Worker.emitStatus('Downloaded all photos');
+			   })
 			   .catch(debug.warn)
 		//dwn all photos
 		//make video
 		//upload to youtube
 	})
 })
+
+
+
+
+
+
+
 
 class Worker {
 
@@ -112,5 +123,10 @@ class Worker {
 			    });
 			});
 		});
+	}
+
+	static emitStatus(status)
+	{
+		socket.emit('worker:update-status', status);
 	}
 }
