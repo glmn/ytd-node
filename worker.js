@@ -17,12 +17,12 @@ var socket		= require("socket.io-client")('http://localhost:3000'),
 	require('dotenv').config();
 	
 const
-	photos_limit = proccess.env.PHOTOS_LIMIT,
+	photos_limit = process.env.PHOTOS_LIMIT || 10,
 	photos_temp = 'temp/photos',
 	videos_temp = 'temp/videos',
 	sounds_path = 'assets/sounds',
 	images_path = 'assets/img',
-	hotellook_api = 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
+	hotellook_api = process.env.HOTELLOOK_API || 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
 	description_link = 'http://h.glmn.io/';
 
 socket.on('connect', () => {
