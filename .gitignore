@@ -1,2 +1,4 @@
 temp/photos/*
 temp/videos/*
+*/.DS_Store
+.DS_Store
