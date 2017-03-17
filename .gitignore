@@ -1,3 +1,5 @@
+!temp/photos/.gitkeep
+!temp/videos/.gitkeep
 temp/photos/*
 temp/videos/*
 */.DS_Store
