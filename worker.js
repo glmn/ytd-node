@@ -24,6 +24,9 @@ const
 socket.on('connect', function(){
 	socket.emit('hotel-request');
 	socket.on('hotel-response', function(hotel){
+		Promise.resolve(hotel)
+			   .then(Worker.makePhotosDir)
+			   .then(Worker.downloadAllPhotos)
 		//dwn all photos
 		//make video
 		//upload to youtube
@@ -40,7 +43,7 @@ class Worker {
 				if (err) {
 					return new Promise(function(resolve,reject){
 						fs.mkdir(folder, function(){
-							resolve(folder);
+							resolve([folder,hotel]);
 						});	
 					});
 				}
@@ -50,6 +53,49 @@ class Worker {
 				} else {
 					resolve([folder,hotel]);
 				}
+			});
+		});
+	}
+
+	static downloadAllPhotos(args)
+	{
+		return new Promise(function(resolve,reject){
+			[folder,hotel] = args;
+
+			var promises = [];
+			var photosUrls = [];
+
+			for(var i = 1; i <= hotel.photos_count; i++){
+				photosUrls.push(
+					hotellook_api.replace('{id}', hotel.id)
+							   	 .replace('{photo_id}', i)
+				)
+			}
+
+			photosUrls.forEach(function(photoUrl, index){
+				promises.push(self.downloadPhoto(hotel, photoUrl, folder, index));
+			});
+
+			Promise.all(promises)
+				.then(function(){
+			        debug.log(hotel.name + ' => all photos downloaded');
+					resolve([hotel,folder])
+				})
+				.catch(reject);
+		});
+	}
+
+	static downloadPhoto(hotel, photoUrl, folder, index)
+	{
+		return new Promise(function(resolve,reject){
+			var request = http.get(photoUrl, function (response) {
+				var f = fs.createWriteStream(path.join(folder,index + '.jpg'));
+				response.on('data', function (chunk) {
+			        f.write(chunk);
+			    }).on('end',function(){
+			        f.end();
+			        resolve(hotel);
+			    });
 			});
 		});
 	}
