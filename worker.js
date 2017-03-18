@@ -24,8 +24,8 @@ const
 	videos_temp = 'temp/videos',
 	sounds_path = 'assets/sounds',
 	images_path = 'assets/img',
-	hotellook_api = process.env.HOTELLOOK_API || 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
-	redirect_link = process.env.REDIRECT_LINK || 'http://h.glmn.io/',
+	hotellook_api = process.env.HOTELLOOK_API,
+	redirect_link = process.env.REDIRECT_LINK,
 	CREDENTIALS = readJson('credentials.json');
 	
 var uploaded_videos = 0;
