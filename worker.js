@@ -285,7 +285,7 @@ class Worker {
 			});
 
 			var uploadlogger = setInterval(function () {
-			    debug.log(`${prettyBytes(req.req.connection._bytesDispatched)} uploaded.`);
+			    Worker.emitStatus(`Uploaded ${prettyBytes(req.req.connection._bytesDispatched)}`)
 			}, 1000);
 		});
 	}
