@@ -27,7 +27,7 @@ const
 	hotellook_api = process.env.HOTELLOOK_API || 'http://photo.hotellook.com/image_v2/crop/h{id}_{photo_id}/1280/720.jpg',
 	redirect_link = process.env.REDIRECT_LINK || 'http://h.glmn.io/',
 	CREDENTIALS = readJson('credentials.json');
-
+	
 var uploaded_videos = 0;
 
 var	video_description = [
@@ -38,6 +38,7 @@ var	video_description = [
 	"{hotel_name} video",
 	"{hotel_name} reviews"
 ];
+
 var oauth = youtube.authenticate({
     type: "oauth",
  	access_token: process.env.ACCESS_TOKEN,
