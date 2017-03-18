@@ -77,7 +77,10 @@ socket.on('connect', () => {
 			   		return [hotel,video];
 			   })
 			   .then(Worker.youtubeUpload)
-			   .then(() => {
+			   .then(([hotel,data]) => {
+			   		Worker.emitHotelStatusComplete(hotel);
+			   		debug.log(data);
+			   		
 			   		uploaded_videos += 1;
 			   		if(uploaded_videos == upload_limit)
 			   		{
@@ -278,7 +281,7 @@ class Worker {
 				if(err) reject(err);
 				console.log('Uploaded');
 			    clearInterval(uploadlogger);
-			    resolve();
+			    resolve([hotel,data]);
 			});
 
 			var uploadlogger = setInterval(function () {
@@ -290,6 +293,11 @@ class Worker {
 	static emitStatus(status)
 	{
 		socket.emit('worker:update-status', status);
+	}
+
+	static emitHotelStatusComplete(hotel)
+	{
+		socket.emit('worker:hotel-status-complete', hotel);
 	}
 
 
