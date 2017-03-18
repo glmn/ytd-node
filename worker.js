@@ -17,7 +17,7 @@ var socket		= require("socket.io-client")('http://localhost:3000'),
 	require('dotenv').config();
 	
 const
-	upload_delay = process.env.UPLOAD_DELAY || 60 * 60 * 12,
+	limit_delay = process.env.LIMIT_DELAY || 60 * 60 * 12,
 	upload_limit = process.env.UPLOAD_LIMIT || 50,
 	photos_limit = process.env.PHOTOS_LIMIT || 10,
 	photos_temp = 'temp/photos',
@@ -78,14 +78,14 @@ socket.on('connect', () => {
 			   })
 			   .then(Worker.youtubeUpload)
 			   .then(([hotel,video]) => {
-			   		Worker.emitHotelStatusComplete(hotel,video.id);
+			   		Worker.emitHotelStatusComplete(hotel,video);
 			   		
 			   		uploaded_videos += 1;
 			   		if(uploaded_videos == upload_limit)
 			   		{
 			   			setTimeout(() => {
 							socket.emit('worker:hotel-request');
-			   			}, upload_delay);
+			   			}, limit_delay);
 			   		}else{
 						socket.emit('worker:hotel-request');
 			   		}
@@ -294,9 +294,9 @@ class Worker {
 		socket.emit('worker:update-status', status);
 	}
 
-	static emitHotelStatusComplete([hotel,videoid])
+	static emitHotelStatusComplete(hotel,video)
 	{
-		socket.emit('worker:hotel-status-complete', [hotel,videoid]);
+		socket.emit('worker:hotel-status-complete', [hotel,video]);
 	}
 
 
