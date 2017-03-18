@@ -77,9 +77,8 @@ socket.on('connect', () => {
 			   		return [hotel,video];
 			   })
 			   .then(Worker.youtubeUpload)
-			   .then(([hotel,data]) => {
-			   		Worker.emitHotelStatusComplete(hotel);
-			   		debug.log(data);
+			   .then(([hotel,video]) => {
+			   		Worker.emitHotelStatusComplete(hotel,video.id);
 			   		
 			   		uploaded_videos += 1;
 			   		if(uploaded_videos == upload_limit)
@@ -295,9 +294,9 @@ class Worker {
 		socket.emit('worker:update-status', status);
 	}
 
-	static emitHotelStatusComplete(hotel)
+	static emitHotelStatusComplete([hotel,videoid])
 	{
-		socket.emit('worker:hotel-status-complete', hotel);
+		socket.emit('worker:hotel-status-complete', [hotel,videoid]);
 	}
 
 
