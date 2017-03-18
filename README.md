@@ -1,4 +1,4 @@
-# YouTube Doorway 
+# YouTube Doorway - Worker 
 [![Build Status](https://travis-ci.org/glmn/ytd-worker.svg?branch=master)](https://travis-ci.org/glmn/ytd-worker)
 
 ### This repo is a part of `ytd` project
