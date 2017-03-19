@@ -28,8 +28,11 @@ const
 	redirect_link = process.env.REDIRECT_LINK,
 	CREDENTIALS = readJson('credentials.json');
 	
-var uploaded_videos = 0,
-	total_uploaded_videos = 0;
+var worker = {
+	uploaded_videos:0,
+	total_uploaded_videos:0,
+	status:''
+}
 
 var	video_description = [
 	"Book it now with up to 20% discount - " + redirect_link + "{hotel_id} \n\n",
@@ -51,7 +54,7 @@ var oauth = youtube.authenticate({
 
 
 socket.on('connect', () => {
-
+	socket.emit('worker:hello');
 	socket.emit('worker:hotel-request');
 	socket.on('worker:hotel-response', (hotel) => {
 
@@ -83,10 +86,10 @@ socket.on('connect', () => {
 			   .then(([hotel,video]) => {
 			   		Worker.emitHotelStatusComplete(hotel,video);
 			   		
-			   		uploaded_videos += 1;
-			   		total_uploaded_videos +=1;
+			   		worker.uploaded_videos += 1;
+			   		worker.total_uploaded_videos +=1;
 			   		
-			   		if(uploaded_videos == upload_limit)
+			   		if(worker.uploaded_videos == upload_limit)
 			   		{
 		   				Worker.emitStatus('Sleeping');
 			   			setTimeout(() => {
@@ -297,7 +300,8 @@ class Worker {
 
 	static emitStatus(status)
 	{
-		socket.emit('worker:update-status', status);
+		worker.status = status;
+		socket.emit('worker:update-status', worker);
 	}
 
 	static emitHotelStatusComplete(hotel,video)
