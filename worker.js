@@ -88,6 +88,7 @@ socket.on('connect', () => {
 			   		
 			   		if(uploaded_videos == upload_limit)
 			   		{
+		   				Worker.emitStatus('Sleeping');
 			   			setTimeout(() => {
 							socket.emit('worker:hotel-request');
 			   			}, limit_delay);
