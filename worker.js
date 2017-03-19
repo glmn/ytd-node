@@ -29,9 +29,10 @@ const
 	CREDENTIALS = readJson('credentials.json');
 	
 var worker = {
+	current_hotel:null,
 	uploaded_videos:0,
 	total_uploaded_videos:0,
-	status:''
+	status:'Starting'
 }
 
 var	video_description = [
@@ -54,12 +55,14 @@ var oauth = youtube.authenticate({
 
 
 socket.on('connect', () => {
-	socket.emit('worker:hello');
+
+	socket.emit('worker:hello', worker);
 	socket.emit('worker:hotel-request');
 	socket.on('worker:hotel-response', (hotel) => {
 
 		Promise.resolve()
 			   .then(() => {
+			   		worker.current_hotel = hotel;
 			   		Worker.emitStatus('Refreshing YouTube token');
 			   })
 			   .then(Worker.youtubeRefreshToken)
