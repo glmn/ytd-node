@@ -1,32 +1,31 @@
 "use strict";
 
 var socket		= require("socket.io-client")('http://localhost:3000'),
-	prettyBytes = require("pretty-bytes"),
-	youtube   	= require("youtube-api"),
-	debug 	  	= require("bug-killer"),
-	videoshow 	= require('videoshow'),
-	Promise   	= require('bluebird'),
-	request   	= require('request'),
-	readJson  	= require("r-json"),
-	rmdir 	  	= require('rimraf'),
-	http 	  	= require('http'),
-	path	  	= require('path'),
-	junk 	  	= require('junk'),
-	opn 	  	= require("opn"),
-	fs		  	= require("fs");
-	require('dotenv').config();
+var prettyBytes = require("pretty-bytes"),
+var youtube   	= require("youtube-api"),
+var debug 	  	= require("bug-killer"),
+var videoshow 	= require('videoshow'),
+var Promise   	= require('bluebird'),
+var request   	= require('request'),
+var readJson  	= require("r-json"),
+var rmdir 	  	= require('rimraf'),
+var http 	  	= require('http'),
+var path	  	= require('path'),
+var junk 	  	= require('junk'),
+var opn 	  	= require("opn"),
+var fs		  	= require("fs");
+require('dotenv').config();
 	
-const
-	limit_delay = process.env.LIMIT_DELAY || 60 * 60 * 12,
-	upload_limit = process.env.UPLOAD_LIMIT || 50,
-	photos_limit = process.env.PHOTOS_LIMIT || 10,
-	photos_temp = 'temp/photos',
-	videos_temp = 'temp/videos',
-	sounds_path = 'assets/sounds',
-	images_path = 'assets/img',
-	hotellook_api = process.env.HOTELLOOK_API,
-	redirect_link = process.env.REDIRECT_LINK,
-	CREDENTIALS = readJson('credentials.json');
+const delay_time = process.env.DELAY_TIME || 60 * 60 * 12,
+const upload_limit = process.env.UPLOAD_LIMIT || 50,
+const photos_limit = process.env.PHOTOS_LIMIT || 10,
+const photos_temp = 'temp/photos',
+const videos_temp = 'temp/videos',
+const sounds_path = 'assets/sounds',
+const images_path = 'assets/img',
+const hotellook_api = process.env.HOTELLOOK_API,
+const redirect_link = process.env.REDIRECT_LINK,
+const CREDENTIALS = readJson('credentials.json');
 	
 var worker = {
 	current_hotel:null,
@@ -97,7 +96,7 @@ socket.on('connect', () => {
 		   				Worker.emitStatus('Sleeping');
 			   			setTimeout(() => {
 							socket.emit('worker:hotel-request');
-			   			}, limit_delay);
+			   			}, delay_time);
 			   		}else{
 						socket.emit('worker:hotel-request');
 			   		}
