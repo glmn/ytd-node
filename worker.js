@@ -31,6 +31,7 @@ var worker = {
 	current_hotel:null,
 	uploaded_videos:0,
 	total_uploaded_videos:0,
+	last_uploaded:0,
 	status:'Starting'
 }
 
