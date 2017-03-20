@@ -1,19 +1,21 @@
 "use strict";
 
-var socket		= require("socket.io-client")('http://localhost:3000');
+var socket = require("socket.io-client")('http://localhost:3000');
 var prettyBytes = require("pretty-bytes");
-var youtube   	= require("youtube-api");
-var debug 	  	= require("bug-killer");
-var videoshow 	= require('videoshow');
-var Promise   	= require('bluebird');
-var request   	= require('request');
-var readJson  	= require("r-json");
-var rmdir 	  	= require('rimraf');
-var http 	  	= require('http');
-var path	  	= require('path');
-var junk 	  	= require('junk');
-var opn 	  	= require("opn");
-var fs		  	= require("fs");
+var youtube = require("youtube-api");
+var debug = require("bug-killer");
+var videoshow = require('videoshow');
+var Promise = require('bluebird');
+var request = require('request');
+var readJson = require("r-json");
+var rmdir = require('rimraf');
+var http = require('http');
+var path = require('path');
+var junk = require('junk');
+var opn = require("opn");
+var fs = require("fs");
+var sqlite = require('sqlite3').verbose();
+
 require('dotenv').config();
 	
 const delay_time = process.env.DELAY_TIME || 60 * 60 * 12;
@@ -306,4 +308,9 @@ class Worker {
 		socket.emit('worker:hotel-status-complete', [hotel,video]);
 	}
 
+}
+
+class Account {
+
+	static get db(){ }
 }
