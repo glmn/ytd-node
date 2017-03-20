@@ -10,7 +10,7 @@
 ### TODO:
 - [ ] Support multiply accounts
   - [ ] Store array of accounts in .env (don't know how to yet)
-  - [x] Rotate accounts, when reached upload limit on each of them
+  - [ ] Rotate accounts, when reached upload limit on each of them
   - [ ] Store last uploaded video timestamp for each account
   - [ ] Make delay on each account, while current time doesn't equal or bigger then last_uploaded plus limit_delay
   - [ ] Emit to server which account already using
