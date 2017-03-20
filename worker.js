@@ -1,30 +1,30 @@
 "use strict";
 
-var socket		= require("socket.io-client")('http://localhost:3000'),
-var prettyBytes = require("pretty-bytes"),
-var youtube   	= require("youtube-api"),
-var debug 	  	= require("bug-killer"),
-var videoshow 	= require('videoshow'),
-var Promise   	= require('bluebird'),
-var request   	= require('request'),
-var readJson  	= require("r-json"),
-var rmdir 	  	= require('rimraf'),
-var http 	  	= require('http'),
-var path	  	= require('path'),
-var junk 	  	= require('junk'),
-var opn 	  	= require("opn"),
+var socket		= require("socket.io-client")('http://localhost:3000');
+var prettyBytes = require("pretty-bytes");
+var youtube   	= require("youtube-api");
+var debug 	  	= require("bug-killer");
+var videoshow 	= require('videoshow');
+var Promise   	= require('bluebird');
+var request   	= require('request');
+var readJson  	= require("r-json");
+var rmdir 	  	= require('rimraf');
+var http 	  	= require('http');
+var path	  	= require('path');
+var junk 	  	= require('junk');
+var opn 	  	= require("opn");
 var fs		  	= require("fs");
 require('dotenv').config();
 	
-const delay_time = process.env.DELAY_TIME || 60 * 60 * 12,
-const upload_limit = process.env.UPLOAD_LIMIT || 50,
-const photos_limit = process.env.PHOTOS_LIMIT || 10,
-const photos_temp = 'temp/photos',
-const videos_temp = 'temp/videos',
-const sounds_path = 'assets/sounds',
-const images_path = 'assets/img',
-const hotellook_api = process.env.HOTELLOOK_API,
-const redirect_link = process.env.REDIRECT_LINK,
+const delay_time = process.env.DELAY_TIME || 60 * 60 * 12;
+const upload_limit = process.env.UPLOAD_LIMIT || 50;
+const photos_limit = process.env.PHOTOS_LIMIT || 10;
+const photos_temp = 'temp/photos';
+const videos_temp = 'temp/videos';
+const sounds_path = 'assets/sounds';
+const images_path = 'assets/img';
+const hotellook_api = process.env.HOTELLOOK_API;
+const redirect_link = process.env.REDIRECT_LINK;
 const CREDENTIALS = readJson('credentials.json');
 	
 var worker = {
