@@ -10,3 +10,4 @@
 ### TODO:
 - [ ] Support multiply accounts. 
   - [ ] Create array of accounts in .env (don't know how to yet)
+  - [ ] Rotate accounts, when reached upload limit on each of them
