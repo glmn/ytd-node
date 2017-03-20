@@ -107,12 +107,6 @@ socket.on('connect', () => {
 })
 
 
-
-
-
-
-
-
 class Worker {
 
 	static makePhotosDir(hotel)
@@ -311,6 +305,5 @@ class Worker {
 	{
 		socket.emit('worker:hotel-status-complete', [hotel,video]);
 	}
-
 
 }
