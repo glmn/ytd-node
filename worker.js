@@ -310,7 +310,25 @@ class Worker {
 
 }
 
-class Account {
+class Accounts {
 
-	static get db(){ }
+	constructor()
+	{
+		this.db = new sqlite.Database('accounts.db', sqlite.OPEN_READWRITE);
+		this.db.on('open',() => {
+			this.fetchAll().then(rows => {
+				this.list = rows;
+			})
+		})
+	}
+
+	fetchAll()
+	{
+		return new Promise((resolve,reject) => {
+			this.db.all('SELECT * FROM accounts', (err, rows) => {
+				if(err) reject(err)
+				resolve(rows)
+			})
+		})
+	}
 }
