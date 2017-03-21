@@ -312,21 +312,10 @@ class Worker {
 
 }
 
-
-/*
-	Init Accounts class and connection to accounts database
- */
-
 accounts.db.on('open',() => {
-	/*
-		Fetch all accounts from database
-	 */
 	accounts.fetchAll().then(rows => {
 		accounts.list = rows;
 	})
-	/*
-		Select first account from list
-	 */
 	.then(() => {
 		return accounts.selectFirst();
 	})
