@@ -331,4 +331,9 @@ class Accounts {
 			})
 		})
 	}
+
+	showList()
+	{
+		debug.warn(this.list);
+	}
 }
