@@ -8,7 +8,7 @@
 * [ytd-admin](https://github.com/glmn/ytd-admin) - Admin panel to monitor activities of workers (`Vue` + `Socket.IO`) :ok_hand:
 
 ### TODO:
-- [x] Support multiply accounts
+- [ ] Support multiply accounts
   - [x] Store accounts in sqlite
   - [x] Rotate accounts, when reached upload limit on each of them
   - [x] Store last uploaded video timestamp for each account
