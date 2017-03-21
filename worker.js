@@ -105,7 +105,7 @@ accounts.db.on('open',() => {
 							
 							accounts.current.uploaded_videos += 1;
 							accounts.current.total_uploaded_videos += 1;
-							accounts.current.last_uploaded = new Date().getTime() / 1000;
+							accounts.current.last_uploaded = Math.round(new Date().getTime() / 1000);
 
 							debug.warn(accounts.current);
 							
@@ -118,7 +118,7 @@ accounts.db.on('open',() => {
 								}else{
 									accounts.selectFirst()
 
-									var time_diff = (new Date().getTime() / 1000) - accounts.current.last_uploaded;
+									var time_diff = (Math.round(new Date().getTime() / 1000)) - accounts.current.last_uploaded;
 									
 									if(time_diff > delay_time){
 										socket.emit('worker:hotel-request');
