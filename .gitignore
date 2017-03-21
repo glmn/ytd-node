@@ -7,3 +7,4 @@ temp/videos/*
 .env
 node_modules
 credentials.json
+accounts.db

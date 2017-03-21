@@ -1,19 +1,23 @@
 "use strict";
 
-var socket		= require("socket.io-client")('http://localhost:3000');
+var socket = require("socket.io-client")('http://localhost:3000');
 var prettyBytes = require("pretty-bytes");
-var youtube   	= require("youtube-api");
-var debug 	  	= require("bug-killer");
-var videoshow 	= require('videoshow');
-var Promise   	= require('bluebird');
-var request   	= require('request');
-var readJson  	= require("r-json");
-var rmdir 	  	= require('rimraf');
-var http 	  	= require('http');
-var path	  	= require('path');
-var junk 	  	= require('junk');
-var opn 	  	= require("opn");
-var fs		  	= require("fs");
+var youtube = require("youtube-api");
+var debug = require("bug-killer");
+var videoshow = require('videoshow');
+var Promise = require('bluebird');
+var request = require('request');
+var readJson = require("r-json");
+var rmdir = require('rimraf');
+var http = require('http');
+var path = require('path');
+var junk = require('junk');
+var opn = require("opn");
+var fs = require("fs");
+var sqlite = require('sqlite3').verbose();
+var Accounts = require('./accounts.js');
+var accounts = new Accounts();
+
 require('dotenv').config();
 	
 const delay_time = process.env.DELAY_TIME || 60 * 60 * 12;
@@ -43,69 +47,98 @@ var	video_description = [
 	"{hotel_name} video",
 	"{hotel_name} reviews"
 ];
+var oauth = youtube.authenticate();
 
-var oauth = youtube.authenticate({
-    type: "oauth",
- 	access_token: process.env.ACCESS_TOKEN,
-	refresh_token: process.env.REFRESH_TOKEN,
-	client_id: CREDENTIALS.web.client_id,
-	client_secret: CREDENTIALS.web.client_secret,
-	redirect_url: CREDENTIALS.web.redirect_uris[0]
-});
-
-
-socket.on('connect', () => {
-
-	socket.emit('worker:hello', worker);
-	socket.emit('worker:hotel-request');
-	socket.on('worker:hotel-response', (hotel) => {
-
-		Promise.resolve()
-			   .then(() => {
-			   		worker.current_hotel = hotel;
-			   		Worker.emitStatus('Refreshing YouTube token');
-			   })
-			   .then(Worker.youtubeRefreshToken)
-			   .then(() => {
-			   		Worker.emitStatus('Making photos temp directory');
-			   		return hotel;
-			   })
-			   .then(Worker.makePhotosDir)
-			   .then(([folder,hotel]) => {
-			   		Worker.emitStatus('Downloading photos');
-			   		return [folder,hotel];
-			   })
-			   .then(Worker.downloadAllPhotos)
-			   .then(([folder,hotel]) => {
-			   		Worker.emitStatus('Making video');
-			   		return [folder,hotel];
-			   })
-			   .then(Worker.makeVideo)
-			   .then(([hotel,video]) => {
-			   		Worker.emitStatus('Uploading video to YouTube');
-			   		return [hotel,video];
-			   })
-			   .then(Worker.youtubeUpload)
-			   .then(([hotel,video]) => {
-			   		Worker.emitHotelStatusComplete(hotel,video);
-			   		
-			   		worker.uploaded_videos += 1;
-			   		worker.total_uploaded_videos +=1;
-			   		
-			   		if(worker.uploaded_videos == upload_limit)
-			   		{
-		   				Worker.emitStatus('Sleeping');
-			   			setTimeout(() => {
-							socket.emit('worker:hotel-request');
-			   			}, delay_time);
-			   		}else{
-						socket.emit('worker:hotel-request');
-			   		}
-			   })
-			   .catch(debug.warn)
+accounts.db.on('open',() => {
+	accounts.fetchAll().then(rows => {
+		accounts.list = rows;
 	})
-})
+	.then(() => {
+		return accounts.selectFirst();
+	})
+	.then(() => {
+		accounts.current
 
+		oauth = youtube.authenticate({
+		    type: "oauth",
+		 	access_token: accounts.current.access_token,
+			refresh_token: accounts.current.refresh_token,
+			client_id: CREDENTIALS.web.client_id,
+			client_secret: CREDENTIALS.web.client_secret,
+			redirect_url: CREDENTIALS.web.redirect_uris[0]
+		});
+
+		socket.on('connect', () => {
+
+			socket.emit('worker:hello', worker);
+			socket.emit('worker:hotel-request');
+			socket.on('worker:hotel-response', (hotel) => {
+
+				Promise.resolve()
+					.then(() => {
+							worker.current_hotel = hotel;
+							Worker.emitStatus('Refreshing YouTube token');
+					})
+					.then(Worker.youtubeRefreshToken)
+					.then(() => {
+							Worker.emitStatus('Making photos temp directory');
+							return hotel;
+					})
+					.then(Worker.makePhotosDir)
+					.then(([folder,hotel]) => {
+							Worker.emitStatus('Downloading photos');
+							return [folder,hotel];
+					})
+					.then(Worker.downloadAllPhotos)
+					.then(([folder,hotel]) => {
+							Worker.emitStatus('Making video');
+							return [folder,hotel];
+					})
+					.then(Worker.makeVideo)
+					.then(([hotel,video]) => {
+							Worker.emitStatus('Uploading video to YouTube');
+							return [hotel,video];
+					})
+					.then(Worker.youtubeUpload)
+					.then(([hotel,video]) => {
+							Worker.emitHotelStatusComplete(hotel,video);
+							
+							accounts.current.uploaded_videos += 1;
+							accounts.current.total_uploaded_videos += 1;
+							accounts.current.last_uploaded = Math.round(new Date().getTime() / 1000);
+
+							debug.warn(accounts.current);
+							
+							if(accounts.current.uploaded_videos == upload_limit)
+							{
+								if(accounts.nextExists()){
+									Worker.emitStatus('Changing account');
+									accounts.next();
+									socket.emit('worker:hotel-request');
+								}else{
+									accounts.selectFirst()
+
+									var time_diff = (Math.round(new Date().getTime() / 1000)) - accounts.current.last_uploaded;
+									
+									if(time_diff > delay_time){
+										socket.emit('worker:hotel-request');
+									}else{
+										Worker.emitStatus('Sleeping');
+										setTimeout(() => {
+											socket.emit('worker:hotel-request');
+										}, time_diff);
+									}
+								}
+							}else{
+								socket.emit('worker:hotel-request');
+							}
+					})
+					.catch(debug.warn)
+			})
+		})
+
+	});
+})
 
 class Worker {
 
