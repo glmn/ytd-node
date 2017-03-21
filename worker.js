@@ -350,6 +350,11 @@ class Accounts {
 			resolve(this.current)
 		})
 	}
+
+	selectFirst()
+	{
+		return this.select(0);
+	}
 }
 
 
@@ -358,7 +363,7 @@ accounts.db.on('open',() => {
 	accounts.fetchAll().then(rows => {
 		accounts.list = rows;
 	}).then(() => {
-		return accounts.select(0);
+		return accounts.selectFirst();
 	}).then((account) => {
 		debug.error(account)
 	});
