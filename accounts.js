@@ -52,6 +52,6 @@ module.exports = class Accounts {
 
 	nextExists()
 	{
-		return this.count-1 >= this.currentIndex+1;
+		return this.count()-1 >= this.currentIndex+1;
 	}
 }
