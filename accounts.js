@@ -32,7 +32,7 @@ module.exports = class Accounts {
 	{
 		return new Promise((resolve,reject) => {
 			if(this.count() == 0) reject(new Error('Zero accounts in database'))
-			if(this.count()-1 > index) reject(new Error('Account index out of range'))
+			if(this.count()-1 < index) reject(new Error('Account index out of range'))
 
 			this.currentIndex = index;
 			this.current = this.list[index];
