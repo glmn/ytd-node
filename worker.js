@@ -347,7 +347,7 @@ class Accounts {
 
 			this.currentIndex = index;
 			this.current = this.list[index];
-			resolve(this.current)
+			resolve()
 		})
 	}
 
@@ -364,7 +364,7 @@ accounts.db.on('open',() => {
 		accounts.list = rows;
 	}).then(() => {
 		return accounts.selectFirst();
-	}).then((account) => {
-		debug.error(account)
+	}).then(() => {
+		debug.error(accounts.current)
 	});
 })
