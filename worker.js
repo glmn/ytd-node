@@ -47,69 +47,87 @@ var	video_description = [
 	"{hotel_name} video",
 	"{hotel_name} reviews"
 ];
+var oauth = youtube.authenticate();
 
-var oauth = youtube.authenticate({
-    type: "oauth",
- 	access_token: process.env.ACCESS_TOKEN,
-	refresh_token: process.env.REFRESH_TOKEN,
-	client_id: CREDENTIALS.web.client_id,
-	client_secret: CREDENTIALS.web.client_secret,
-	redirect_url: CREDENTIALS.web.redirect_uris[0]
-});
-
-
-socket.on('connect', () => {
-
-	socket.emit('worker:hello', worker);
-	socket.emit('worker:hotel-request');
-	socket.on('worker:hotel-response', (hotel) => {
-
-		Promise.resolve()
-			   .then(() => {
-			   		worker.current_hotel = hotel;
-			   		Worker.emitStatus('Refreshing YouTube token');
-			   })
-			   .then(Worker.youtubeRefreshToken)
-			   .then(() => {
-			   		Worker.emitStatus('Making photos temp directory');
-			   		return hotel;
-			   })
-			   .then(Worker.makePhotosDir)
-			   .then(([folder,hotel]) => {
-			   		Worker.emitStatus('Downloading photos');
-			   		return [folder,hotel];
-			   })
-			   .then(Worker.downloadAllPhotos)
-			   .then(([folder,hotel]) => {
-			   		Worker.emitStatus('Making video');
-			   		return [folder,hotel];
-			   })
-			   .then(Worker.makeVideo)
-			   .then(([hotel,video]) => {
-			   		Worker.emitStatus('Uploading video to YouTube');
-			   		return [hotel,video];
-			   })
-			   .then(Worker.youtubeUpload)
-			   .then(([hotel,video]) => {
-			   		Worker.emitHotelStatusComplete(hotel,video);
-			   		
-			   		worker.uploaded_videos += 1;
-			   		worker.total_uploaded_videos +=1;
-			   		
-			   		if(worker.uploaded_videos == upload_limit)
-			   		{
-		   				Worker.emitStatus('Sleeping');
-			   			setTimeout(() => {
-							socket.emit('worker:hotel-request');
-			   			}, delay_time);
-			   		}else{
-						socket.emit('worker:hotel-request');
-			   		}
-			   })
-			   .catch(debug.warn)
+accounts.db.on('open',() => {
+	accounts.fetchAll().then(rows => {
+		accounts.list = rows;
 	})
-})
+	.then(() => {
+		return accounts.selectFirst();
+	})
+	.then(() => {
+		accounts.current
 
+		oauth = youtube.authenticate({
+		    type: "oauth",
+		 	access_token: accounts.current.access_token,
+			refresh_token: accounts.current.refresh_token,
+			client_id: CREDENTIALS.web.client_id,
+			client_secret: CREDENTIALS.web.client_secret,
+			redirect_url: CREDENTIALS.web.redirect_uris[0]
+		});
+
+		socket.on('connect', () => {
+
+			socket.emit('worker:hello', worker);
+			socket.emit('worker:hotel-request');
+			socket.on('worker:hotel-response', (hotel) => {
+
+				Promise.resolve()
+					.then(() => {
+							worker.current_hotel = hotel;
+							Worker.emitStatus('Refreshing YouTube token');
+					})
+					.then(Worker.youtubeRefreshToken)
+					.then(() => {
+							Worker.emitStatus('Making photos temp directory');
+							return hotel;
+					})
+					.then(Worker.makePhotosDir)
+					.then(([folder,hotel]) => {
+							Worker.emitStatus('Downloading photos');
+							return [folder,hotel];
+					})
+					.then(Worker.downloadAllPhotos)
+					.then(([folder,hotel]) => {
+							Worker.emitStatus('Making video');
+							return [folder,hotel];
+					})
+					.then(Worker.makeVideo)
+					.then(([hotel,video]) => {
+							Worker.emitStatus('Uploading video to YouTube');
+							return [hotel,video];
+					})
+					.then(Worker.youtubeUpload)
+					.then(([hotel,video]) => {
+							Worker.emitHotelStatusComplete(hotel,video);
+							
+							accounts.current.uploaded_videos += 1;
+							accounts.current.total_uploaded_videos += 1;
+							
+							if(accounts.current.uploaded_videos == upload_limit)
+							{
+								if(accounts.nextExists()){
+									Worker.emitStatus('Changing account');
+									accounts.next();
+									socket.emit('worker:hotel-request');
+								}
+
+								Worker.emitStatus('Sleeping');
+								setTimeout(() => {
+									socket.emit('worker:hotel-request');
+								}, delay_time);
+							}else{
+							socket.emit('worker:hotel-request');
+							}
+					})
+					.catch(debug.warn)
+			})
+		})
+
+	});
+})
 
 class Worker {
 
@@ -311,15 +329,3 @@ class Worker {
 	}
 
 }
-
-accounts.db.on('open',() => {
-	accounts.fetchAll().then(rows => {
-		accounts.list = rows;
-	})
-	.then(() => {
-		return accounts.selectFirst();
-	})
-	.then(() => {
-		debug.error(accounts.current)
-	});
-})

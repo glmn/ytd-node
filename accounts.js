@@ -44,4 +44,14 @@ module.exports = class Accounts {
 	{
 		return this.select(0);
 	}
+
+	next()
+	{
+		this.current = this.list[this.currentIndex+1];
+	}
+
+	nextExists()
+	{
+		return this.count-1 >= this.currentIndex+1;
+	}
 }
