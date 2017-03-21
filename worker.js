@@ -105,6 +105,9 @@ accounts.db.on('open',() => {
 							
 							accounts.current.uploaded_videos += 1;
 							accounts.current.total_uploaded_videos += 1;
+							accounts.current.last_uploaded = new Date().getTime() / 1000;
+
+							debug.warn(accounts.current);
 							
 							if(accounts.current.uploaded_videos == upload_limit)
 							{
@@ -112,14 +115,22 @@ accounts.db.on('open',() => {
 									Worker.emitStatus('Changing account');
 									accounts.next();
 									socket.emit('worker:hotel-request');
-								}
+								}else{
+									accounts.selectFirst()
 
-								Worker.emitStatus('Sleeping');
-								setTimeout(() => {
-									socket.emit('worker:hotel-request');
-								}, delay_time);
+									var time_diff = (new Date().getTime() / 1000) - accounts.current.last_uploaded;
+									
+									if(time_diff > delay_time){
+										socket.emit('worker:hotel-request');
+									}else{
+										Worker.emitStatus('Sleeping');
+										setTimeout(() => {
+											socket.emit('worker:hotel-request');
+										}, time_diff);
+									}
+								}
 							}else{
-							socket.emit('worker:hotel-request');
+								socket.emit('worker:hotel-request');
 							}
 					})
 					.catch(debug.warn)

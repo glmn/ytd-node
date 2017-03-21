@@ -47,7 +47,7 @@ module.exports = class Accounts {
 
 	next()
 	{
-		this.current = this.list[this.currentIndex+1];
+		retrun this.select(this.currentIndex+1);
 	}
 
 	nextExists()
