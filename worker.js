@@ -315,11 +315,6 @@ class Accounts {
 	constructor()
 	{
 		this.db = new sqlite.Database('accounts.db', sqlite.OPEN_READWRITE);
-		this.db.on('open',() => {
-			this.fetchAll().then(rows => {
-				this.list = rows;
-			})
-		})
 	}
 
 	fetchAll()
@@ -332,8 +327,24 @@ class Accounts {
 		})
 	}
 
+	count()
+	{
+		return this.list.length;
+	}
+
 	showList()
 	{
-		debug.warn(this.list);
+		debug.log(this.list);
 	}
+	
 }
+
+
+var accounts = new Accounts();
+accounts.db.on('open',() => {
+	accounts.fetchAll().then(rows => {
+		accounts.list = rows;
+	}).then(() => {
+		debug.log(accounts.count())
+	})
+})
