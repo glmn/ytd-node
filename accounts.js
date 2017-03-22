@@ -58,9 +58,10 @@ module.exports = class Accounts {
 	update(index)
 	{
 		return new Promise((resolve,reject) => {
-			this.db.run("UPDATE accounts SET uploaded_videos = ? , total_uploaded_videos = ? WHERE id = ?",
+			this.db.run("UPDATE accounts SET uploaded_videos = ? , total_uploaded_videos = ? , last_uploaded = ? WHERE id = ?",
 				this.list[index].uploaded_videos, 
 				this.list[index].total_uploaded_videos,
+				this.list[index].last_uploaded,
 				this.list[index].id,
 				(err) => {
 					if(err) reject(err)
