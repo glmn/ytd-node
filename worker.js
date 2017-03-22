@@ -125,7 +125,6 @@ accounts.db.on('open',() => {
 									if(time_diff >= delay_time / 1000){
 										socket.emit('worker:hotel-request');
 									}else{
-										debug.log('Time diff:' + time_diff);
 										Worker.emitStatus('Sleeping');
 										setTimeout(() => {
 											socket.emit('worker:hotel-request');
@@ -176,7 +175,6 @@ class Worker {
 	{
 		return new Promise((resolve,reject) => {
 			var [folder,hotel] = args;
-			debug.log(folder,hotel);
 			var promises = [];
 			var photoUrls = [];
 
@@ -193,7 +191,6 @@ class Worker {
 
 			Promise.all(promises)
 				.then(() => {
-			        debug.log(hotel.name + ' => all photos downloaded');
 					resolve([hotel,folder])
 				})
 				.catch(reject);
