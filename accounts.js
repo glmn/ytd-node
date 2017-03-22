@@ -54,4 +54,18 @@ module.exports = class Accounts {
 	{
 		return this.count()-1 >= this.currentIndex+1;
 	}
+
+	update(index)
+	{
+		return new Promise((resolve,reject) => {
+			this.db.run("UPDATE accounts SET uploaded_videos = ? , total_uploaded_videos = ?",
+				this.list[index].uploaded_videos, 
+				this.list[index].total_uploaded_videos, 
+				(err) => {
+					if(err) reject(err)
+					resolve()
+				}
+			);
+		})
+	}
 }
