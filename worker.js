@@ -107,6 +107,8 @@ accounts.db.on('open',() => {
 							accounts.current.total_uploaded_videos += 1;
 							accounts.current.last_uploaded = Math.round(new Date().getTime() / 1000);
 
+							accounts.updateCurrent();
+
 							
 							if(accounts.current.uploaded_videos == upload_limit)
 							{

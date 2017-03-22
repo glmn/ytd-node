@@ -70,4 +70,9 @@ module.exports = class Accounts {
 			);
 		})
 	}
+
+	updateCurrent(index)
+	{
+		this.update(this.currentIndex);
+	}
 }
