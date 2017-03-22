@@ -33,9 +33,8 @@ const CREDENTIALS = readJson('credentials.json');
 	
 var worker = {
 	current_hotel:null,
-	uploaded_videos:0,
-	total_uploaded_videos:0,
-	last_uploaded:0,
+	accounts:null,
+	current_account_id:null,
 	status:'Starting'
 }
 
@@ -52,12 +51,13 @@ var oauth = youtube.authenticate();
 accounts.db.on('open',() => {
 	accounts.fetchAll().then(rows => {
 		accounts.list = rows;
+		worker.accounts = accounts.list;
 	})
 	.then(() => {
 		return accounts.selectFirst();
 	})
 	.then(() => {
-		accounts.current
+		worker.current_account_id = accounts.currentIndex;
 
 		oauth = youtube.authenticate({
 		    type: "oauth",
@@ -107,7 +107,6 @@ accounts.db.on('open',() => {
 							accounts.current.total_uploaded_videos += 1;
 							accounts.current.last_uploaded = Math.round(new Date().getTime() / 1000);
 
-							debug.warn(accounts.current);
 							
 							if(accounts.current.uploaded_videos == upload_limit)
 							{
@@ -116,6 +115,7 @@ accounts.db.on('open',() => {
 								if(accounts.nextExists()){
 									Worker.emitStatus('Changing account');
 									accounts.next();
+									worker.current_account_id = accounts.currentIndex;
 									socket.emit('worker:hotel-request');
 								}else{
 									accounts.selectFirst();
