@@ -23,9 +23,9 @@ var accounts = new Accounts();
 
 require('dotenv').config();
 	
-const delay_time = process.env.DELAY_TIME || 60 * 60 * 12;
-const upload_limit = process.env.UPLOAD_LIMIT || 50;
-const photos_limit = process.env.PHOTOS_LIMIT || 10;
+const delay_time = process.env.DELAY_TIME;
+const upload_limit = process.env.UPLOAD_LIMIT;
+const photos_limit = process.env.PHOTOS_LIMIT;
 const photos_temp = 'temp/photos';
 const videos_temp = 'temp/videos';
 const sounds_path = 'assets/sounds';
@@ -54,6 +54,19 @@ watch(worker, function(){
 	Worker.emitStatus();
 })
 
+watch(worker,'current_account_id', function(){
+	oauth = youtube.authenticate({
+	    type: "oauth",
+	 	access_token: worker.accounts[worker.current_account_id].access_token,
+		refresh_token: worker.accounts[worker.current_account_id].refresh_token,
+		client_id: CREDENTIALS.web.client_id,
+		client_secret: CREDENTIALS.web.client_secret,
+		redirect_url: CREDENTIALS.web.redirect_uris[0]
+	});
+
+	Worker.youtubeRefreshToken();
+})
+
 accounts.db.on('open',() => {
 	accounts.fetchAll().then(rows => {
 		accounts.list = rows;
@@ -65,28 +78,15 @@ accounts.db.on('open',() => {
 	.then(() => {
 		worker.current_account_id = accounts.currentIndex;
 
-		oauth = youtube.authenticate({
-		    type: "oauth",
-		 	access_token: accounts.current.access_token,
-			refresh_token: accounts.current.refresh_token,
-			client_id: CREDENTIALS.web.client_id,
-			client_secret: CREDENTIALS.web.client_secret,
-			redirect_url: CREDENTIALS.web.redirect_uris[0]
-		});
-
 		socket.on('connect', () => {
 
 			socket.emit('worker:hello', worker);
 			socket.emit('worker:hotel-request');
 			socket.on('worker:hotel-response', (hotel) => {
 
+				worker.current_hotel = hotel;
+
 				Promise.resolve()
-					.then(() => {
-							worker.current_hotel = hotel;
-							accounts.current.status = 'Refreshing YouTube token';
-							
-					})
-					.then(Worker.youtubeRefreshToken)
 					.then(() => {
 							accounts.current.status = 'Making photos temp directory';
 							return hotel;
@@ -108,6 +108,7 @@ accounts.db.on('open',() => {
 					})
 					.then(Worker.youtubeUpload)
 					.then(([hotel,video]) => {
+
 							Worker.emitHotelStatusComplete(hotel,video);
 							
 							accounts.current.uploaded_videos += 1;
@@ -117,27 +118,30 @@ accounts.db.on('open',() => {
 							accounts.updateCurrent();
 
 							
-							if(accounts.current.uploaded_videos == upload_limit)
+							if(accounts.current.uploaded_videos >= upload_limit)
 							{
 								accounts.current.uploaded_videos = 0;
 
 								if(accounts.nextExists()){
-									accounts.current.status = 'Changing account'
+									accounts.current.status = 'Sleeping'
 									accounts.next();
 									worker.current_account_id = accounts.currentIndex;
 									socket.emit('worker:hotel-request');
 								}else{
+									accounts.current.status = 'Sleeping'
 									accounts.selectFirst();
+									worker.current_account_id = accounts.currentIndex;
 
 									var time_diff = (Math.round(new Date().getTime() / 1000)) - accounts.current.last_uploaded;
 
 									if(time_diff >= delay_time / 1000){
 										socket.emit('worker:hotel-request');
 									}else{
-										accounts.current.status = 'Sleeping'
+										var delay = delay_time - (time_diff * 1000);
+										accounts.current.status = 'Sleeping for ' + delay
 										setTimeout(() => {
 											socket.emit('worker:hotel-request');
-										}, delay_time - (time_diff * 1000));
+										}, delay);
 									}
 								}
 							}else{
@@ -326,13 +330,12 @@ class Worker {
 			    }
 			}, (err, data) => {
 				if(err) reject(err);
-				console.log('Uploaded');
 			    clearInterval(uploadlogger);
 			    resolve([hotel,data]);
 			});
 
 			var uploadlogger = setInterval(function () {
-			    Worker.emitStatus(`Uploaded ${prettyBytes(req.req.connection._bytesDispatched)}`)
+			    accounts.current.status = `Uploaded ${prettyBytes(req.req.connection._bytesDispatched)}`;
 			}, 1000);
 		});
 	}
@@ -346,5 +349,4 @@ class Worker {
 	{
 		socket.emit('worker:hotel-status-complete', [hotel,video]);
 	}
-
 }
