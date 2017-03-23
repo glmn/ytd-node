@@ -75,4 +75,12 @@ module.exports = class Accounts {
 	{
 		this.update(this.currentIndex);
 	}
+
+	insertNew(account)
+	{
+		this.db.run("INSERT INTO accounts (id,access_token,refresh_token) VALUES(null,?,?)", account.access_token, account.refresh_token, (err) => {
+			if(err) reject(err);
+			resolve();
+ 		});
+	}
 }
