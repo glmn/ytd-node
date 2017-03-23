@@ -89,25 +89,21 @@ accounts.db.on('open',() => {
 					.then(Worker.youtubeRefreshToken)
 					.then(() => {
 							accounts.current.status = 'Making photos temp directory';
-							
 							return hotel;
 					})
 					.then(Worker.makePhotosDir)
 					.then(([folder,hotel]) => {
 							accounts.current.status = 'Downloading photos'
-							
 							return [folder,hotel];
 					})
 					.then(Worker.downloadAllPhotos)
 					.then(([folder,hotel]) => {
 							accounts.current.status = 'Making video'
-							
 							return [folder,hotel];
 					})
 					.then(Worker.makeVideo)
 					.then(([hotel,video]) => {
 							accounts.current.status = 'Uploading video to YouTube'
-							
 							return [hotel,video];
 					})
 					.then(Worker.youtubeUpload)
@@ -127,7 +123,6 @@ accounts.db.on('open',() => {
 
 								if(accounts.nextExists()){
 									accounts.current.status = 'Changing account'
-									
 									accounts.next();
 									worker.current_account_id = accounts.currentIndex;
 									socket.emit('worker:hotel-request');
@@ -140,7 +135,6 @@ accounts.db.on('open',() => {
 										socket.emit('worker:hotel-request');
 									}else{
 										accounts.current.status = 'Sleeping'
-										
 										setTimeout(() => {
 											socket.emit('worker:hotel-request');
 										}, delay_time - (time_diff * 1000));
