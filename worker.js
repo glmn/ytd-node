@@ -35,7 +35,6 @@ var worker = {
 	current_hotel:null,
 	accounts:null,
 	current_account_id:null,
-	status:'Starting'
 }
 
 var	video_description = [
@@ -77,26 +76,31 @@ accounts.db.on('open',() => {
 				Promise.resolve()
 					.then(() => {
 							worker.current_hotel = hotel;
-							Worker.emitStatus('Refreshing YouTube token');
+							accounts.current.status = 'Refreshing YouTube token';
+							Worker.emitStatus();
 					})
 					.then(Worker.youtubeRefreshToken)
 					.then(() => {
-							Worker.emitStatus('Making photos temp directory');
+							accounts.current.status = 'Making photos temp directory';
+							Worker.emitStatus();
 							return hotel;
 					})
 					.then(Worker.makePhotosDir)
 					.then(([folder,hotel]) => {
-							Worker.emitStatus('Downloading photos');
+							accounts.current.status = 'Downloading photos'
+							Worker.emitStatus();
 							return [folder,hotel];
 					})
 					.then(Worker.downloadAllPhotos)
 					.then(([folder,hotel]) => {
-							Worker.emitStatus('Making video');
+							accounts.current.status = 'Making video'
+							Worker.emitStatus();
 							return [folder,hotel];
 					})
 					.then(Worker.makeVideo)
 					.then(([hotel,video]) => {
-							Worker.emitStatus('Uploading video to YouTube');
+							accounts.current.status = 'Uploading video to YouTube'
+							Worker.emitStatus();
 							return [hotel,video];
 					})
 					.then(Worker.youtubeUpload)
@@ -115,7 +119,8 @@ accounts.db.on('open',() => {
 								accounts.current.uploaded_videos = 0;
 
 								if(accounts.nextExists()){
-									Worker.emitStatus('Changing account');
+									accounts.current.status = 'Changing account'
+									Worker.emitStatus();
 									accounts.next();
 									worker.current_account_id = accounts.currentIndex;
 									socket.emit('worker:hotel-request');
@@ -127,7 +132,8 @@ accounts.db.on('open',() => {
 									if(time_diff >= delay_time / 1000){
 										socket.emit('worker:hotel-request');
 									}else{
-										Worker.emitStatus('Sleeping');
+										accounts.current.status = 'Sleeping'
+										Worker.emitStatus();
 										setTimeout(() => {
 											socket.emit('worker:hotel-request');
 										}, delay_time - (time_diff * 1000));
@@ -330,9 +336,8 @@ class Worker {
 		});
 	}
 
-	static emitStatus(status)
+	static emitStatus()
 	{
-		worker.status = status;
 		socket.emit('worker:update-status', worker);
 	}
 
