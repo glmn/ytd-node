@@ -15,8 +15,11 @@ var junk = require('junk');
 var opn = require("opn");
 var fs = require("fs");
 var sqlite = require('sqlite3').verbose();
+var WatchJS = require("melanke-watchjs")
+var watch = WatchJS.watch;
 var Accounts = require('./accounts.js');
 var accounts = new Accounts();
+
 
 require('dotenv').config();
 	
@@ -46,6 +49,10 @@ var	video_description = [
 	"{hotel_name} reviews"
 ];
 var oauth = youtube.authenticate();
+
+watch(worker, function(){
+	Worker.emitStatus();
+})
 
 accounts.db.on('open',() => {
 	accounts.fetchAll().then(rows => {
@@ -77,30 +84,30 @@ accounts.db.on('open',() => {
 					.then(() => {
 							worker.current_hotel = hotel;
 							accounts.current.status = 'Refreshing YouTube token';
-							Worker.emitStatus();
+							
 					})
 					.then(Worker.youtubeRefreshToken)
 					.then(() => {
 							accounts.current.status = 'Making photos temp directory';
-							Worker.emitStatus();
+							
 							return hotel;
 					})
 					.then(Worker.makePhotosDir)
 					.then(([folder,hotel]) => {
 							accounts.current.status = 'Downloading photos'
-							Worker.emitStatus();
+							
 							return [folder,hotel];
 					})
 					.then(Worker.downloadAllPhotos)
 					.then(([folder,hotel]) => {
 							accounts.current.status = 'Making video'
-							Worker.emitStatus();
+							
 							return [folder,hotel];
 					})
 					.then(Worker.makeVideo)
 					.then(([hotel,video]) => {
 							accounts.current.status = 'Uploading video to YouTube'
-							Worker.emitStatus();
+							
 							return [hotel,video];
 					})
 					.then(Worker.youtubeUpload)
@@ -120,7 +127,7 @@ accounts.db.on('open',() => {
 
 								if(accounts.nextExists()){
 									accounts.current.status = 'Changing account'
-									Worker.emitStatus();
+									
 									accounts.next();
 									worker.current_account_id = accounts.currentIndex;
 									socket.emit('worker:hotel-request');
@@ -133,7 +140,7 @@ accounts.db.on('open',() => {
 										socket.emit('worker:hotel-request');
 									}else{
 										accounts.current.status = 'Sleeping'
-										Worker.emitStatus();
+										
 										setTimeout(() => {
 											socket.emit('worker:hotel-request');
 										}, delay_time - (time_diff * 1000));
