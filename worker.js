@@ -87,33 +87,33 @@ accounts.db.on('open',() => {
 
 				Promise.resolve()
 					.then(() => {
-							accounts.current.status = 'Making photos temp directory';
+							accounts.current.status = 'creating temp folder';
 							return hotel;
 					})
 					.then(Worker.makePhotosDir)
 					.then(([folder,hotel]) => {
-							accounts.current.status = 'Downloading photos'
+							accounts.current.status = 'downloading images'
 							return [folder,hotel];
 					})
 					.then(Worker.downloadAllPhotos)
 					.then(([folder,hotel]) => {
-							accounts.current.status = 'Making video'
+							accounts.current.status = 'rendering'
 							return [folder,hotel];
 					})
 					.then(Worker.makeVideo)
 					.then(([hotel,video]) => {
-							accounts.current.status = 'Uploading video to YouTube'
+							accounts.current.status = 'prepare for upload'
 							return [hotel,video];
 					})
 					.then(Worker.youtubeUpload)
 					.catch((err) => {
 						switch(err.code){
 							case 503:
-								accounts.current.status = 'Got YouTube upload limitation.';
+								accounts.current.status = 'got limitation';
 								Worker.selectNextAccount();
 								break;
 							default:
-								accounts.current.status = 'Unknown error: ' + err.code;
+								accounts.current.status = 'unknown error: ' + err.code;
 								Worker.selectNextAccount();
 								break;
 						}
@@ -131,7 +131,7 @@ accounts.db.on('open',() => {
 							
 							if(accounts.current.uploaded_videos >= upload_limit)
 							{
-								accounts.current.status = 'Reached upload limit.'
+								accounts.current.status = 'upload limit'
 								accounts.current.uploaded_videos = 0;
 
 								Worker.selectNextAccount();
