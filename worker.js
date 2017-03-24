@@ -1,6 +1,7 @@
 "use strict";
 
-var socket = require("socket.io-client")('http://localhost:3000');
+require('dotenv').config();
+var socket = require("socket.io-client")(process.env.SOCKET_HOST);
 var prettyBytes = require("pretty-bytes");
 var youtube = require("youtube-api");
 var debug = require("bug-killer");
@@ -20,8 +21,6 @@ var watch = WatchJS.watch;
 var Accounts = require('./accounts.js');
 var accounts = new Accounts();
 
-
-require('dotenv').config();
 	
 const delay_time = process.env.DELAY_TIME;
 const upload_limit = process.env.UPLOAD_LIMIT;
@@ -107,6 +106,18 @@ accounts.db.on('open',() => {
 							return [hotel,video];
 					})
 					.then(Worker.youtubeUpload)
+					.catch((err) => {
+						switch(err.code){
+							case 503:
+								accounts.current.status = 'Got YouTube upload limitation.';
+								Worker.selectNextAccount();
+								break;
+							default:
+								accounts.current.status = 'Unknown error: ' + err.code;
+								Worker.selectNextAccount();
+								break;
+						}
+					})
 					.then(([hotel,video]) => {
 
 							Worker.emitHotelStatusComplete(hotel,video);
@@ -120,30 +131,10 @@ accounts.db.on('open',() => {
 							
 							if(accounts.current.uploaded_videos >= upload_limit)
 							{
+								accounts.current.status = 'Reached upload limit.'
 								accounts.current.uploaded_videos = 0;
 
-								if(accounts.nextExists()){
-									accounts.current.status = 'Sleeping'
-									accounts.next();
-									worker.current_account_id = accounts.currentIndex;
-									socket.emit('worker:hotel-request');
-								}else{
-									accounts.current.status = 'Sleeping'
-									accounts.selectFirst();
-									worker.current_account_id = accounts.currentIndex;
-
-									var time_diff = (Math.round(new Date().getTime() / 1000)) - accounts.current.last_uploaded;
-
-									if(time_diff >= delay_time / 1000){
-										socket.emit('worker:hotel-request');
-									}else{
-										var delay = delay_time - (time_diff * 1000);
-										accounts.current.status = 'Sleeping for ' + delay
-										setTimeout(() => {
-											socket.emit('worker:hotel-request');
-										}, delay);
-									}
-								}
+								Worker.selectNextAccount();
 							}else{
 								socket.emit('worker:hotel-request');
 							}
@@ -348,5 +339,29 @@ class Worker {
 	static emitHotelStatusComplete(hotel,video)
 	{
 		socket.emit('worker:hotel-status-complete', [hotel,video]);
+	}
+
+	static selectNextAccount()
+	{
+		if(accounts.nextExists()){
+			accounts.next();
+			worker.current_account_id = accounts.currentIndex;
+			socket.emit('worker:hotel-request');
+		}else{
+			accounts.selectFirst();
+			worker.current_account_id = accounts.currentIndex;
+
+			var time_diff = (Math.round(new Date().getTime() / 1000)) - accounts.current.last_uploaded;
+
+			if(time_diff >= delay_time / 1000){
+				socket.emit('worker:hotel-request');
+			}else{
+				var delay = delay_time - (time_diff * 1000);
+				accounts.current.status = 'Sleeping for ' + delay
+				setTimeout(() => {
+					socket.emit('worker:hotel-request');
+				}, delay);
+			}
+		}
 	}
 }

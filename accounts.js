@@ -1,4 +1,5 @@
 var sqlite = require('sqlite3').verbose();
+
 module.exports = class Accounts {
 
 	constructor()
