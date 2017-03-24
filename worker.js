@@ -87,17 +87,17 @@ accounts.db.on('open',() => {
 
 				Promise.resolve()
 					.then(() => {
-							accounts.current.status = 'creating temp folder';
+							accounts.current.status = 'create temp folder';
 							return hotel;
 					})
 					.then(Worker.makePhotosDir)
 					.then(([folder,hotel]) => {
-							accounts.current.status = 'downloading images'
+							accounts.current.status = 'download images'
 							return [folder,hotel];
 					})
 					.then(Worker.downloadAllPhotos)
 					.then(([folder,hotel]) => {
-							accounts.current.status = 'rendering'
+							accounts.current.status = 'render'
 							return [folder,hotel];
 					})
 					.then(Worker.makeVideo)
@@ -109,7 +109,7 @@ accounts.db.on('open',() => {
 					.catch((err) => {
 						switch(err.code){
 							case 503:
-								accounts.current.status = 'got limitation';
+								accounts.current.status = 'got limit';
 								Worker.selectNextAccount();
 								break;
 							default:
@@ -245,9 +245,7 @@ class Worker {
 						.audio(audio)
 						.logo(watermark,watermarkOptions)
 						.save(video_output)
-						.on('start', () => {
-				        	console.log(hotel.name + ' => making video');
-						})
+						.on('start', () => {})
 						.on('end', () => {
 							rmdir(folder, () => {
 								resolve([hotel,video_output])
@@ -326,7 +324,7 @@ class Worker {
 			});
 
 			var uploadlogger = setInterval(function () {
-			    accounts.current.status = `Uploaded ${prettyBytes(req.req.connection._bytesDispatched)}`;
+			    accounts.current.status = `uploaded ${prettyBytes(req.req.connection._bytesDispatched)}`;
 			}, 1000);
 		});
 	}
@@ -357,7 +355,7 @@ class Worker {
 				socket.emit('worker:hotel-request');
 			}else{
 				var delay = delay_time - (time_diff * 1000);
-				accounts.current.status = 'Sleeping for ' + delay
+				accounts.current.status = 'sleep'
 				setTimeout(() => {
 					socket.emit('worker:hotel-request');
 				}, delay);
