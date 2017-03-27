@@ -1,6 +1,7 @@
 "use strict";
 
 require('dotenv').config();
+var os = require('os');
 var socket = require("socket.io-client")(process.env.SOCKET_HOST);
 var prettyBytes = require("pretty-bytes");
 var youtube = require("youtube-api");
@@ -34,6 +35,10 @@ const redirect_link = process.env.REDIRECT_LINK;
 const CREDENTIALS = readJson('credentials.json');
 	
 var worker = {
+	droplet: {
+		host: os.hostname(),
+		ip: os.networkInterfaces().eth0[0].address
+	},
 	current_hotel:null,
 	accounts:null,
 	current_account_id:null,
