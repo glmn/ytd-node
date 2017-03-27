@@ -117,6 +117,7 @@ accounts.db.on('open',() => {
 								Worker.selectNextAccount();
 								break;
 							default:
+								debug.warn(err);
 								accounts.current.status = 'unknown error: ' + err.code;
 								Worker.selectNextAccount();
 								break;
