@@ -36,8 +36,7 @@ const CREDENTIALS = readJson('credentials.json');
 	
 var worker = {
 	droplet: {
-		host: os.hostname(),
-		ip: os.networkInterfaces().eth0[0].address
+		host: os.hostname()
 	},
 	current_hotel:null,
 	accounts:null,
